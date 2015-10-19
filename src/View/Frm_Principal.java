@@ -1028,8 +1028,8 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void insereGrupo() {
         for (Grupo grupo : grupos) {
             try {
-                st2.executeUpdate("INSERT INTO GRUPPROD (CODGRUPO,DESCRICAO) VALUES ('"+
-                        grupo.getCodgrupo()+"','"+grupo.getDescricao()+"';");
+                st2.executeUpdate("INSERT INTO GRUPPROD (CODGRUPO,DESCRICAO) VALUES ('"
+                        + grupo.getCodgrupo() + "','" + grupo.getDescricao() + "';");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o grupo: " + grupo.getCodgrupo() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1040,7 +1040,19 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void insereEstoque() {
         for (Inventario inventario : inventarios) {
             try {
-
+                st2.executeUpdate("INSERT INTO INVENTA (CODEMPRESA, DATAINV, CODPROD, DOCUMENTO, PROCESSADO, "
+                        + "USUARIO, QUANTIDADE, CODCAUSA, CODGRADE, PRECOCUSTO) VALUES ('"
+                        + inventario.getCodEmpresa() + "','"
+                        + inventario.getDataInv() + "','"
+                        + inventario.getCodprod() + "','"
+                        + inventario.getDocumento() + "','"
+                        + inventario.getProcessado() + "','"
+                        + inventario.getUsuario() + "','"
+                        + inventario.getQuantidade() + "','"
+                        + inventario.getCodcausa() + "','"
+                        + inventario.getCodgrade() + "','"
+                        + inventario.getPrecocusto() + "');"
+                );
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o produto no estoque: " + inventario.getCodprod() + "\n" + e);
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1051,7 +1063,8 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void insereFabricantes() {
         for (Fabricante fabricante : fabricantes) {
             try {
-
+                st2.executeUpdate("INSERT INTO CADFABR (CODFABRIC,DESCRICAO) VALUES ('"
+                        + fabricante.getCodfabric() + "','" + fabricante.getDescricao() + "');");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o Fabricantes: " + fabricante.getCodfabric() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1063,7 +1076,7 @@ public class Frm_Principal extends javax.swing.JFrame {
         for (NCM ncm : ncms) {
             try {
                 st2.executeUpdate("INSERT CLASFISC (CODCLASFIS,CODIGONCM,CODNBM) VALUES ('"
-                        +ncm.getCodclasfis()+"','"+ncm.getCodigoncm()+"','"+ncm.getCodigoncm()+"';");
+                        + ncm.getCodclasfis() + "','" + ncm.getCodigoncm() + "','" + ncm.getCodigoncm() + "';");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o NCM: " + ncm.getCodigoncm() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
