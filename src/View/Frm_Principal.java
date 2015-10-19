@@ -1022,13 +1022,14 @@ public class Frm_Principal extends javax.swing.JFrame {
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
             }
         }
-
+        insereGrupo();
     }
 
     private void insereGrupo() {
         for (Grupo grupo : grupos) {
             try {
-
+                st2.executeUpdate("INSERT INTO GRUPPROD (CODGRUPO,DESCRICAO) VALUES ('"+
+                        grupo.getCodgrupo()+"','"+grupo.getDescricao()+"';");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o grupo: " + grupo.getCodgrupo() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1061,7 +1062,8 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void insereNCMs() {
         for (NCM ncm : ncms) {
             try {
-
+                st2.executeUpdate("INSERT CLASFISC (CODCLASFIS,CODIGONCM,CODNBM) VALUES ('"
+                        +ncm.getCodclasfis()+"','"+ncm.getCodigoncm()+"','"+ncm.getCodigoncm()+"';");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o NCM: " + ncm.getCodigoncm() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1099,9 +1101,9 @@ public class Frm_Principal extends javax.swing.JFrame {
             insereFornecedor();
         }
         if (Integer.parseInt(qtdeProdutos.getText()) > 0) {
+            insereProdutos();
             insereGrupo();
             insereNCMs();
-            insereProdutos();
             insereFabricantes();
             if (chx_estoque.isSelected()) {
                 insereEstoque();
