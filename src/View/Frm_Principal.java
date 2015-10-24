@@ -13,10 +13,13 @@ import Model.Inventario;
 import Model.NCM;
 import Model.Produto;
 import Util.Classes.Conexao;
+import Util.Classes.Data;
 import java.awt.Color;
+import java.awt.Event;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,8 +100,8 @@ public class Frm_Principal extends javax.swing.JFrame {
         chx_estoque = new javax.swing.JCheckBox();
         jLabel8 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        txt_filial = new javax.swing.JFormattedTextField();
         txt_data = new javax.swing.JFormattedTextField();
+        txt_filiais = new javax.swing.JFormattedTextField();
         btn_converter = new javax.swing.JButton();
         btn_limpar = new javax.swing.JButton();
         jPanel6 = new javax.swing.JPanel();
@@ -115,7 +118,7 @@ public class Frm_Principal extends javax.swing.JFrame {
         barra = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Conversor 1.0");
+        setTitle("Conversor 2.0");
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Banco Origem"));
 
@@ -300,18 +303,28 @@ public class Frm_Principal extends javax.swing.JFrame {
         jLabel7.setText("Data *:");
 
         try {
-            txt_filial.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("##/##/####")));
-        } catch (java.text.ParseException ex) {
-            ex.printStackTrace();
-        }
-        txt_filial.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-
-        try {
-            txt_data.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("##")));
+            txt_data.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("##/##/####")));
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
         txt_data.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        txt_data.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_dataKeyPressed(evt);
+            }
+        });
+
+        try {
+            txt_filiais.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("##")));
+        } catch (java.text.ParseException ex) {
+            ex.printStackTrace();
+        }
+        txt_filiais.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        txt_filiais.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_filiaisKeyPressed(evt);
+            }
+        });
 
         btn_converter.setText("Converter");
         btn_converter.addActionListener(new java.awt.event.ActionListener() {
@@ -348,9 +361,9 @@ public class Frm_Principal extends javax.swing.JFrame {
                             .addComponent(jLabel7))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txt_filial)
+                            .addComponent(txt_data)
                             .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addComponent(txt_data, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txt_filiais, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                         .addComponent(btn_limpar, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -374,11 +387,11 @@ public class Frm_Principal extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel8)
-                    .addComponent(txt_data, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txt_filiais, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
-                    .addComponent(txt_filial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txt_data, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btn_converter)
@@ -556,13 +569,40 @@ public class Frm_Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_chx_estoqueItemStateChanged
 
     private void btn_converterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_converterActionPerformed
-        st1 = conexao.getConexao("localhost", txt_diretorioOrigem.getText(),
-                txt_usuarioOrigem.getText(), txt_senhaOrigem.getText());
-        st2 = conexao.getConexao("localhost", txt_diretorioDestino.getText(),
-                txt_usuarioDestino.getText(), txt_senhaDestino.getText());
-        setEnabledFields(false);
-        zerarContadores();
-        converte();
+        txt_log.setText(null);
+        if (conexao.getConexao("localhost", txt_diretorioOrigem.getText(),
+                txt_usuarioOrigem.getText(), txt_senhaOrigem.getText()) == null) {
+            JOptionPane.showMessageDialog(null, "Erro de conexão com o Banco de dados Origem!");
+        } else {
+            st1 = conexao.getConexao("localhost", txt_diretorioOrigem.getText(),
+                    txt_usuarioOrigem.getText(), txt_senhaOrigem.getText());
+            if (conexao.getConexao("localhost", txt_diretorioDestino.getText(),
+                    txt_usuarioDestino.getText(), txt_senhaDestino.getText()) == null) {
+                JOptionPane.showMessageDialog(null, "Erro de conexão com o Banco de dados Destino!");
+            } else {
+                st2 = conexao.getConexao("localhost", txt_diretorioDestino.getText(),
+                        txt_usuarioDestino.getText(), txt_senhaDestino.getText());
+                if (chx_estoque.getSelectedObjects() != null) {
+                    if (txt_filiais.getText().trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "Código da filial inválido!");
+                        txt_filiais.requestFocus();
+                    } else {
+                        if (txt_data.getText().replaceAll("/", "").replace(" ", "").trim().isEmpty()) {
+                            JOptionPane.showMessageDialog(null, "Data do Inventário inválida!");
+                            txt_data.requestFocus();
+                        } else {
+                            setEnabledFields(false);
+                            zerarContadores();
+                            converte();
+                        }
+                    }
+                } else {
+                    setEnabledFields(false);
+                    zerarContadores();
+                    converte();
+                }
+            }
+        }
     }//GEN-LAST:event_btn_converterActionPerformed
 
     private void chx_produtosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chx_produtosItemStateChanged
@@ -573,6 +613,18 @@ public class Frm_Principal extends javax.swing.JFrame {
             chx_estoque.setEnabled(false);
         }
     }//GEN-LAST:event_chx_produtosItemStateChanged
+
+    private void txt_dataKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_dataKeyPressed
+        if (evt.getKeyCode() == Event.ENTER) {
+            txt_data.setText(Data.getData("dd/MM/yyyy"));
+        }
+    }//GEN-LAST:event_txt_dataKeyPressed
+
+    private void txt_filiaisKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_filiaisKeyPressed
+        if (evt.getKeyCode() == Event.ENTER) {
+            txt_data.requestFocus();
+        }
+    }//GEN-LAST:event_txt_filiaisKeyPressed
 
     /**
      * @param args the command line arguments
@@ -649,7 +701,7 @@ public class Frm_Principal extends javax.swing.JFrame {
     private javax.swing.JFormattedTextField txt_data;
     private javax.swing.JTextField txt_diretorioDestino;
     private javax.swing.JTextField txt_diretorioOrigem;
-    private javax.swing.JFormattedTextField txt_filial;
+    private javax.swing.JFormattedTextField txt_filiais;
     private javax.swing.JTextArea txt_log;
     private javax.swing.JPasswordField txt_senhaDestino;
     private javax.swing.JPasswordField txt_senhaOrigem;
@@ -663,8 +715,8 @@ public class Frm_Principal extends javax.swing.JFrame {
         chx_produtos.setSelected(false);
         chx_estoque.setSelected(false);
         chx_fornecedores.setSelected(false);
+        txt_filiais.setText(null);
         txt_data.setText(null);
-        txt_filial.setText(null);
     }
 
     private void buscaDiretorio(JTextField diretorio) {
@@ -732,13 +784,14 @@ public class Frm_Principal extends javax.swing.JFrame {
 
     private void validaChxEstoque() {
         if (chx_estoque.isSelected() == true) {
-            txt_filial.setEnabled(true);
             txt_data.setEnabled(true);
+            txt_filiais.setEnabled(true);
+            txt_filiais.requestFocus();
         } else {
-            txt_filial.setText(null);
             txt_data.setText(null);
+            txt_filiais.setText(null);
+            txt_filiais.setEnabled(false);
             txt_data.setEnabled(false);
-            txt_filial.setEnabled(false);
         }
     }
 
@@ -749,7 +802,6 @@ public class Frm_Principal extends javax.swing.JFrame {
         txt_diretorioDestino.setEnabled(status);
         txt_usuarioDestino.setEnabled(status);
         txt_senhaDestino.setEnabled(status);
-        txt_log.setText(null);
     }
 
     private void zerarContadores() {
@@ -757,6 +809,7 @@ public class Frm_Principal extends javax.swing.JFrame {
         qtdeFornecedores.setText(0 + "");
         qtdeProdutos.setText(0 + "");
         qtdeErros.setText(0 + "");
+        barra.setValue(0);
     }
 
     private String trataCamposByQtde(int tamanho, String grupo) {
@@ -786,21 +839,23 @@ public class Frm_Principal extends javax.swing.JFrame {
             st1.executeUpdate("UPDATE CLI_ENDE e set e.nro='0' where e.nro is null or e.nro='';");
             st1.executeUpdate("UPDATE CLI_COMP e set e.rg='' WHERE e.rg is null;");
             st1.executeUpdate("UPDATE CLI_COMP e set e.ie='ISENTO' WHERE e.ie is null;");
-            rs = st1.executeQuery("select\n"
-                    + "                    c.cliente codcliente,\n"
-                    + "                    left(c.pessoa,1) pessoa_FJ,\n"
-                    + "                    left(c.cpf,18)cgccpf,\n"
-                    + "                    left(c.nome,60) nome,\n"
-                    + "                    left(l.email,60) email,\n"
-                    + "                    left(l.rg,20) campolivre1,\n"
-                    + "                    left(l.ie,15) inscest, \n"
-                    + "                    left(e.cep,8) cep, \n"
-                    + "                    left(e.nro,5) numeronfe,\n"
-                    + "                    right(e.endereco,60) endereco\n"
-                    + "                    from cliente c\n"
-                    + "                    inner join CLI_COMP l on c.cliente=l.cliente\n"
-                    + "                    inner join CLI_ENDE e on c.cliente=e.cliente\n"
-                    + "                    where c.status ='A' and c.cpf <>''");
+            rs = st1.executeQuery("select\n" +
+"                   c.cliente codcliente,\n" +
+"                   left(c.pessoa,1) pessoa_FJ,\n" +
+"                   left(c.cpf,18)cgccpf,\n" +
+"                   left(c.nome,60) nome,\n" +
+"                   left(l.email,60) email,\n" +
+"                   left(l.rg,20) campolivre1,\n" +
+"                   left(l.ie,15) inscest, \n" +
+"                   left(e.cep,8) cep, \n" +
+"                   left(e.nro,5) numeronfe,\n" +
+"                   LEFT(e.CIDADE,60) cidade,\n" +
+"                   left(e.BAIRRO,30) bairro,\n" +
+"                   right(e.endereco,60) endereco\n" +
+"                   from cliente c\n" +
+"                   inner join CLI_COMP l on c.cliente=l.cliente\n" +
+"                   inner join CLI_ENDE e on c.cliente=e.cliente\n" +
+"                   where c.status ='A' and c.cpf <>''");
             while (rs.next()) {
                 Cliente c = new Cliente();
                 c.setCodCliente(trataCamposByQtde(8, rs.getString("codcliente")));
@@ -811,6 +866,8 @@ public class Frm_Principal extends javax.swing.JFrame {
                 c.setNome(rs.getString("nome"));
                 c.setInscest(rs.getString("inscest"));
                 c.setEndereco(rs.getString("endereco").replace("'", ""));
+                c.setBairro(rs.getString("bairro"));
+                c.setCampolivre3(rs.getString("cidade"));
                 c.setCep(rs.getString("cep"));
                 c.setNumeronfe(rs.getString("numeronfe"));
                 c.setEndereconfe(rs.getString("endereco").replace("'", ""));
@@ -872,7 +929,7 @@ public class Frm_Principal extends javax.swing.JFrame {
 
     private void listaGrupos() {
         try {
-            rs = st1.executeQuery("select g.grupo codgrupo,g.nome descricao from grupo g");
+            rs = st1.executeQuery("select g.grupo codgrupo,left(g.nome,30) descricao from grupo g order by g.grupo");
             while (rs.next()) {
                 Grupo grupo = new Grupo();
                 grupo.setCodgrupo(trataCamposByQtde(3, rs.getString("codgrupo")));
@@ -922,14 +979,16 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void listaEstoque() {
         try {
             rs = st1.executeQuery("select\n"
-                    + "f.produto codprod, f.qtdestoque quantidade,'00' codempresa,\n"
-                    + "'02.10.2015' datainv,'02102015' documento,'N' processado,\n"
-                    + "'ADMIN' usuario,'002' codcausa,'0000' codgrade,'0.000' precocusto\n"
-                    + "from produtofisco f");
+                    + "                    left(p.produto,6) codprod, f.qtdestoque quantidade,'00' codempresa,\n"
+                    + "                    '02.10.2015' datainv,'02102015' documento,'N' processado,\n"
+                    + "                    'ADMIN' usuario,'002' codcausa,'0000' codgrade,'0.000' precocusto\n"
+                    + "                    from produto p\n"
+                    + "                    inner join produtofisco f on p.produto=f.produto"
+                    + " order by p.produto");
             while (rs.next()) {
                 Inventario inventario = new Inventario();
                 inventario.setCodprod(rs.getString("codprod"));
-                inventario.setQuantidade(rs.getString("qtde"));
+                inventario.setQuantidade(rs.getString("quantidade"));
                 inventario.setCodEmpresa(rs.getString("codempresa"));
                 inventario.setDataInv(rs.getString("datainv"));
                 inventario.setDocumento(rs.getString("documento"));
@@ -947,12 +1006,16 @@ public class Frm_Principal extends javax.swing.JFrame {
     }
 
     private void insereClientes() {
+        try {
+            st2.executeUpdate("DELETE FROM CLIENTE C WHERE C.CODCLIENTE<>'00000000';");
+            st2.executeUpdate("DELETE FROM COMPCLIE C WHERE C.CODCLIENTE<>'00000000';");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erro ao limpar a tabela de clientes!");
+        }
         for (Cliente cliente : clientes) {
             try {
-                st2.executeUpdate("DELETE FROM CLIENTE C WHERE C.CODCLIENTE<>'00000000';");
-                st2.executeUpdate("DELETE FROM COMPCLIE C WHERE C.CODCLIENTE<>'00000000';");
                 st2.executeUpdate("INSERT INTO CLIENTE (CODCLIENTE,NOME,CGCCPF,INSCEST,PESSOA_FJ,"
-                        + "CEP,ENDERECO,ATIVO) VALUES("
+                        + "CEP,ENDERECO,CAMPOLIVRE3,BAIRRO,ATIVO) VALUES("
                         + "'" + cliente.getCodCliente() + "',"
                         + "'" + cliente.getNome() + "',"
                         + "'" + cliente.getCgccpf() + "',"
@@ -960,6 +1023,8 @@ public class Frm_Principal extends javax.swing.JFrame {
                         + "'" + cliente.getPessoa_FJ() + "',"
                         + "'" + cliente.getCep() + "',"
                         + "'" + cliente.getEndereco() + "',"
+                        + "'" + cliente.getCampolivre3() + "',"
+                        + "'" + cliente.getBairro() + "',"
                         + "'" + cliente.getAtivo() + "'"
                         + ");");
                 st2.executeUpdate("INSERT INTO COMPCLIE (CODCLIENTE,ENDERECONFE,NUMERONFE) VALUES("
@@ -969,8 +1034,10 @@ public class Frm_Principal extends javax.swing.JFrame {
                         + ");");
                 barra.setValue(barra.getValue() + 1);
             } catch (Exception e) {
+                if(e.toString().contains("UNIQUE")==false){
                 txt_log.append("Erro ao inserir o cliente:" + cliente.getCodCliente() + " " + e.getMessage() + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
+                }
             }
         }
 
@@ -988,10 +1055,14 @@ public class Frm_Principal extends javax.swing.JFrame {
     }
 
     private void insereProdutos() {
+        try {
+            st2.executeUpdate("DELETE FROM PRODUTO;");
+            st2.executeUpdate("DELETE FROM PRODUTODETALHE;");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao limpar a tabela de Produtos!");
+        }
         for (Produto produto : produtos) {
             try {
-                st2.executeUpdate("DELETE FROM PRODUTODETALHE;");
-                st2.executeUpdate("DELETE FROM PRODUTO;");
                 st2.executeUpdate("INSERT INTO PRODUTO (CODPROD,DESCRICAO,CODGRUPO,CAMPOLIVRE3,"
                         + "UNIDADEENT,UNIDADESAIDA,CODTRIBUT00,CAMPOLIVRE1,PRECO) VALUES ("
                         + "'" + produto.getCodprod() + "',"
@@ -1018,18 +1089,33 @@ public class Frm_Principal extends javax.swing.JFrame {
                         + ");");
                 barra.setValue(barra.getValue() + 1);
             } catch (Exception e) {
+                if(e.toString().contains("UNIQUE")==false){
                 txt_log.append("Erro ao Inserir o produto: " + produto.getCodprod() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
+                }
             }
         }
         insereGrupo();
+        insereNCMs();
+        insereFabricantes();
     }
 
     private void insereGrupo() {
+        try {
+            st2.executeUpdate("DELETE FROM GRUPROD;");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao deletar os grupos!\n" + ex);
+        }
         for (Grupo grupo : grupos) {
             try {
-                st2.executeUpdate("INSERT INTO GRUPPROD (CODGRUPO,DESCRICAO) VALUES ('"+
-                        grupo.getCodgrupo()+"','"+grupo.getDescricao()+"';");
+                st2.executeUpdate("UPDATE PRODUTO P SET P.TIPOPROD='R',P.CODTIPOPRODUTO='00';");
+                st2.executeUpdate("UPDATE PRODUTO P SET P.SUBSTRIB='S' WHERE P.CODTRIBUT00='060';");
+                st2.executeUpdate("UPDATE PRODUTO P SET P.BASEICMSREG00=100,P.ALIQICMSREG00=18,P.ALIQICMSPDV=18,P.SUBSTRIB='N' WHERE P.CODTRIBUT00<>'060';");
+                st2.executeUpdate("UPDATE PRODUTO P SET P.FRACIONADO='S' WHERE P.UNIDADESAIDA='KG';");
+                if (grupo.getCodgrupo().length() == 3) {
+                    st2.executeUpdate("INSERT INTO GRUPROD (CODGRUPO,DESCRICAO) VALUES ('"
+                            + grupo.getCodgrupo() + "','" + grupo.getDescricao() + "');");
+                }
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o grupo: " + grupo.getCodgrupo() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1038,12 +1124,23 @@ public class Frm_Principal extends javax.swing.JFrame {
     }
 
     private void insereEstoque() {
+        try {
+            st2.executeUpdate("delete from INVENTA;");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao deletar os registros do Inventário!");
+        }
         for (Inventario inventario : inventarios) {
             try {
-
+                st2.executeUpdate("INSERT INTO INVENTA(CODEMPRESA,DATAINV,CODPROD,DOCUMENTO,PROCESSADO,"
+                        + "USUARIO,QUANTIDADE,CODCAUSA,CODGRADE,PRECOCUSTO) VALUES ('" + txt_filiais.getText() + "','" + txt_data.getText().replace("/", ".") + "','"
+                        + inventario.getCodprod() + "','" + txt_data.getText().replace("/", "") + "','"
+                        + inventario.getProcessado() + "','ADMIN','" + inventario.getQuantidade() + "','002','"
+                        + inventario.getCodgrade() + "','" + inventario.getPrecocusto() + "');");
             } catch (Exception e) {
-                txt_log.append("Erro ao Inserir o produto no estoque: " + inventario.getCodprod() + "\n" + e);
-                qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
+                if(e.toString().contains("UNIQUE")==false){
+                    txt_log.append("Erro ao Inserir o produto no estoque: " + inventario.getCodprod() + "\n" + e);
+                    qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
+                }
             }
         }
     }
@@ -1051,7 +1148,9 @@ public class Frm_Principal extends javax.swing.JFrame {
     private void insereFabricantes() {
         for (Fabricante fabricante : fabricantes) {
             try {
-
+                st2.executeUpdate("DELETE FROM CADFABR;");
+                st2.executeUpdate("INSERT INTO CADFABR (CODFABRIC,DESCRICAO) VALUES ('" + fabricante.getCodfabric()
+                        + "','" + fabricante.getDescricao() + "');");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o Fabricantes: " + fabricante.getCodfabric() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
@@ -1060,15 +1159,30 @@ public class Frm_Principal extends javax.swing.JFrame {
     }
 
     private void insereNCMs() {
+        try {
+            st2.executeUpdate("delete from CLASFISC;");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao deletar os ncms!" + ex);
+        }
         for (NCM ncm : ncms) {
             try {
-                st2.executeUpdate("INSERT CLASFISC (CODCLASFIS,CODIGONCM,CODNBM) VALUES ('"
-                        +ncm.getCodclasfis()+"','"+ncm.getCodigoncm()+"','"+ncm.getCodigoncm()+"';");
+                st2.executeUpdate("INSERT INTO CLASFISC (CODCLASFIS,CODIGONCM,CODNBM) VALUES ('"
+                        + ncm.getCodclasfis() + "','"
+                        + ncm.getCodigoncm() + "','"
+                        + ncm.getCodigoncm()
+                        + "');");
             } catch (Exception e) {
                 txt_log.append("Erro ao Inserir o NCM: " + ncm.getCodigoncm() + "\n" + e + "\n");
                 qtdeErros.setText(Integer.parseInt(qtdeErros.getText()) + 1 + "");
             }
         }
+        try {
+            st2.executeUpdate("UPDATE PRODUTO P SET P.CODCLASFIS=("
+                    + "SELECT C.CODCLASFIS FROM CLASFISC C WHERE C.CODIGONCM = P.CAMPOLIVRE1);");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Erro ao colocar o ncm no produto!\n" + ex);
+        }
+        System.out.println("acabou");
     }
 
     private void listaTodos() {
@@ -1102,14 +1216,16 @@ public class Frm_Principal extends javax.swing.JFrame {
         }
         if (Integer.parseInt(qtdeProdutos.getText()) > 0) {
             insereProdutos();
-            insereGrupo();
-            insereNCMs();
-            insereFabricantes();
             if (chx_estoque.isSelected()) {
                 insereEstoque();
             }
         }
         barra.setValue(barra.getValue() + 1);
+        if (Integer.parseInt(qtdeErros.getText()) == 0) {
+            JOptionPane.showMessageDialog(null, "Banco convertido com sucesso!");
+        } else {
+            JOptionPane.showMessageDialog(null, "Banco convertido com Erros!");
+        }
+        setEnabledFields(true);
     }
-
 }
