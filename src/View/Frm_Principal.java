@@ -1022,7 +1022,7 @@ public class Frm_Principal extends javax.swing.JFrame {
                         + "'" + cliente.getInscest().replace("-", "").replace(".", "") + "',"
                         + "'" + cliente.getPessoa_FJ() + "',"
                         + "'" + cliente.getCep() + "',"
-                        + "'" + cliente.getEndereco() + "',"
+                        + "'" + cliente.getEndereconfe()+", "+cliente.getNumeronfe() + "',"
                         + "'" + cliente.getCampolivre3() + "',"
                         + "'" + cliente.getBairro() + "',"
                         + "'" + cliente.getAtivo() + "'"
@@ -1064,7 +1064,7 @@ public class Frm_Principal extends javax.swing.JFrame {
         for (Produto produto : produtos) {
             try {
                 st2.executeUpdate("INSERT INTO PRODUTO (CODPROD,DESCRICAO,CODGRUPO,CAMPOLIVRE3,"
-                        + "UNIDADEENT,UNIDADESAIDA,CODTRIBUT00,CAMPOLIVRE1,PRECO) VALUES ("
+                        + "UNIDADEENT,UNIDADESAIDA,CODTRIBUT00,CAMPOLIVRE1,PRECO,ATIVO,PRODBLOQUEADO) VALUES ("
                         + "'" + produto.getCodprod() + "',"
                         + "'" + produto.getDescricao().replace("'", "").replace("''", "").replace("ç", "c") + "',"
                         + "'" + produto.getCodgrupo() + "',"
@@ -1073,7 +1073,8 @@ public class Frm_Principal extends javax.swing.JFrame {
                         + "'" + produto.getUnidadesaida() + "',"
                         + "'" + produto.getCodtribut00() + "',"
                         + "'" + produto.getCampolivre1() + "',"
-                        + "'" + produto.getPreco() + "'"
+                        + "'" + produto.getPreco() + "',"
+                        +"'S','N'"
                         + ");");
                 st2.executeUpdate("INSERT INTO PRODUTODETALHE (CODPROD,PIS_CST,COFINS_CST,PISENT_CST,COFINSENT_CST,"
                         + "ALIQPIS,ALIQCOFINS,ALIQPISENT,ALIQCOFINSENT) VALUES ("
